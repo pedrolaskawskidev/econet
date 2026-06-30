@@ -8,6 +8,50 @@ use Illuminate\Validation\Rule;
 
 class CompanyController extends Controller
 {
+    private function companyRules(string $status, ?Company $company = null): array
+    {
+        $cnpjRules = ['required', 'string', 'size:14'];
+
+        if ($status === 'active') {
+            $uniqueRule = Rule::unique('companies', 'cnpj')
+                ->where(fn ($query) => $query
+                    ->where('status', true)
+                    ->whereNull('deleted_at'));
+
+            if ($company) {
+                $uniqueRule = $uniqueRule->ignore($company->id);
+            }
+
+            $cnpjRules[] = $uniqueRule;
+        }
+
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'cnpj' => $cnpjRules,
+            'status' => ['required', Rule::in(['active', 'inactive'])],
+        ];
+    }
+
+    private function companyMessages(): array
+    {
+        return [
+            'cnpj.unique' => 'Já existe uma empresa ativa com este CNPJ.',
+        ];
+    }
+
+    private function sanitizeCompanyInput(Request $request): void
+    {
+        $request->merge([
+            'cnpj' => preg_replace('/\D/', '', (string) $request->input('cnpj')),
+        ]);
+    }
+
+    private function normalizeCompanyData(array $data): array
+    {
+        $data['status'] = $data['status'] === 'active';
+
+        return $data;
+    }
 
     public function index()
     {
@@ -16,11 +60,16 @@ class CompanyController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'cnpj' => ['required', 'string', 'size:18', 'unique:companies,cnpj'],
-            'status' => ['required', Rule::in(['active', 'inactive'])],
-        ]);
+        $this->sanitizeCompanyInput($request);
+
+        $status = (string) $request->input('status');
+
+        $data = $request->validate(
+            $this->companyRules($status),
+            $this->companyMessages(),
+        );
+
+        $data = $this->normalizeCompanyData($data);
 
         $company = Company::create($data);
 
@@ -35,7 +84,7 @@ class CompanyController extends Controller
      */
     public function show(Company $company)
     {
-        $company->load('users');
+        $company->load('employees');
 
         return response()->json([
             'data' => $company,
@@ -47,16 +96,16 @@ class CompanyController extends Controller
      */
     public function update(Request $request, Company $company)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'cnpj' => [
-                'required',
-                'string',
-                'size:18',
-                Rule::unique('companies', 'cnpj')->ignore($company->id),
-            ],
-            'status' => ['required', Rule::in(['active', 'inactive'])],
-        ]);
+        $this->sanitizeCompanyInput($request);
+
+        $status = (string) $request->input('status');
+
+        $data = $request->validate(
+            $this->companyRules($status, $company),
+            $this->companyMessages(),
+        );
+
+        $data = $this->normalizeCompanyData($data);
 
         $company->update($data);
 

@@ -18,7 +18,11 @@ class Company extends Model
       'status'
    ];
 
-   public function employee(): HasMany
+   protected $casts = [
+      'status' => 'boolean',
+   ];
+
+   public function employees(): HasMany
    {
       return $this->hasMany(CompanyEmployee::class);
    }

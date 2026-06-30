@@ -15,7 +15,6 @@ class CompanyEmployeeController extends Controller
     {
         return CompanyEmployee::query()
             ->with('company')
-            ->latest()
             ->paginate(10);
     }
 
@@ -42,17 +41,17 @@ class CompanyEmployeeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(CompanyEmployee $companyEmployee)
+    public function show(CompanyEmployee $employee)
     {
         return response()->json([
-            'data' => $companyEmployee->load('company'),
+            'data' => $employee->load('company'),
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, CompanyEmployee $companyEmployee)
+    public function update(Request $request, CompanyEmployee $employee)
     {
         $data = $request->validate([
             'company_id' => ['required', 'exists:companies,id'],
@@ -61,20 +60,20 @@ class CompanyEmployeeController extends Controller
             'role' => ['required', 'string', 'max:255'],
         ]);
 
-        $companyEmployee->update($data);
+        $employee->update($data);
 
         return response()->json([
             'message' => 'Funcionário atualizado com sucesso.',
-            'data' => $companyEmployee->load('company'),
+            'data' => $employee->load('company'),
         ]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(CompanyEmployee $companyEmployee)
+    public function destroy(CompanyEmployee $employee)
     {
-        $companyEmployee->delete();
+        $employee->delete();
 
         return response()->json([
             'message' => 'Funcionário removido com sucesso.',

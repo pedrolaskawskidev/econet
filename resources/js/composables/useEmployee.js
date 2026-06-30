@@ -1,25 +1,24 @@
 import { ref } from "vue";
 
+
 import {
-    getCompanies,
-    getCompany,
-    createCompany,
-    updateCompany,
-    deleteCompany
+    getEmployees,
+    getEmployee,
+    createEmployee,
+    updateEmployee,
+    deleteEmployee
+} from '../services/employeeService'
 
-} from '../services/companyService'
-
-
-export function useCompanies() {
-    const companies = ref([]);
-    const company = ref(null);
+export function useEmployee() {
+    const employees = ref([]);
+    const employee = ref(null);
 
     const loading = ref(false);
     const error = ref(null);
     const success = ref(null);
 
     const saving = ref(false);
-    const deleting = ref(false)
+    const deleting = ref(false);
 
     const pagination = ref({
         currentPage: 1,
@@ -28,14 +27,14 @@ export function useCompanies() {
         total: 0
     })
 
-    async function fetchCompanies(page = 1) {
+    async function fetchEmployees(page = 1) {
         loading.value = true;
         error.value = null;
 
         try {
-            const response = await getCompanies(page);
+            const response = await getEmployees(page);
 
-            companies.value = response.data;
+            employees.value = response.data;
 
             pagination.value = {
                 currentPage: response.current_page,
@@ -44,36 +43,35 @@ export function useCompanies() {
                 total: response.total,
             }
         } catch (err) {
-            error.value = 'Erro ao carregar empresas.';
+            error.value = 'Erro ao carregar funcionários.';
         } finally {
             loading.value = false;
         }
-
     }
 
-    async function fetchCompany(id) {
+    async function fetchEmployee(id) {
         loading.value = true;
         error.value = null;
-        company.value = null;
+        employee.value = null;
 
         try {
-            company.value = await getCompany(id);
+            employee.value = await getEmployee(id);
         } catch (err) {
-            error.value = "Erro ao carregar detalhes";
+            error.value = 'Erro ao carregar funcionário';
         } finally {
             loading.value = false;
         }
     }
 
-    async function saveCompany(id, payload) {
+    async function saveEmployee(id, payload) {
         saving.value = true;
         error.value = null;
         success.value = null;
 
         try {
-            const response = await updateCompany(id, payload);
+            const response = await updateEmployee(id, payload);
 
-            success.value = 'Empresa atualizada com sucesso';
+            success.value = 'Funcionário atualizado com sucesso';
 
             return response.data;
         } catch (err) {
@@ -86,17 +84,18 @@ export function useCompanies() {
         } finally {
             saving.value = false
         }
+
     }
 
-    async function storeCompany(payload) {
+    async function storeEmployee(payload) {
         saving.value = true;
         error.value = null;
         success.value = null;
 
         try {
-            const response = await createCompany(payload);
+            const response = await createEmployee(payload);
 
-            success.value = "Empresa criada com sucesso!";
+            success.value = "Funcionário criado com sucesso!";
 
             return response.data;
         } catch (err) {
@@ -105,26 +104,26 @@ export function useCompanies() {
                 throw err;
             }
 
-            error.value = 'Erro ao cadastrar empresa.';
+            error.value = 'Erro ao cadastrar funcionário.';
             throw err
         } finally {
             saving.value = false;
         }
     }
 
-    async function removeCompany(id) {
+    async function removeEmployee(id) {
         deleting.value = true;
         error.value = null;
         success.value = null;
 
         try {
-            await deleteCompany(id);
+            await deleteEmployee(id);
 
-            companies.value = companies.value.filter((item) => item.id !== id);
+            employees.value = employees.value.filter((item) => item.id !== id);
 
-            success.value = 'Empresa excluída com sucesso.';
+            success.value = 'Funcionário excluído com sucesso.';
         } catch (err) {
-            error.value = 'Erro ao excluir empresa.';
+            error.value = 'Erro ao excluir funcionário.';
             throw err
         } finally {
             deleting.value = false;
@@ -132,25 +131,20 @@ export function useCompanies() {
 
     }
 
-    function clearCompanyState() {
-        error.value = null;
-        success.value = null;
-    }
-    
-    
-    return {
-        companies,
-        company,
+return {
+        employees,
+        employee,
         loading,
         error,
         success,
         saving,
+        deleting,
         pagination,
-        fetchCompanies,
-        fetchCompany,
-        saveCompany,
-        storeCompany,
-        removeCompany,
-        clearCompanyState
+        fetchEmployees,
+        fetchEmployee,
+        saveEmployee,
+        storeEmployee,
+        removeEmployee
     }
+
 }
