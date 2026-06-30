@@ -8,8 +8,6 @@ Aplicação CRUD de empresas e funcionários com:
 - Axios
 - Bootstrap 5
 - SQLite
-- Autenticação por sessão com Laravel Sanctum
-
 
 ## Requisitos
 
